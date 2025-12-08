@@ -32,4 +32,18 @@ describe('PropertyPanel', () => {
     // Check Content Input (for text type)
     expect(screen.getByText('Hello')).toBeDefined();
   });
-});
+
+  it('renders video input when video type is selected', () => {
+      const videoItem = { ...MOCK_ITEM, type: 'video' as const, content: 'https://youtube.com' };
+      render(<PropertyPanel item={videoItem} onUpdate={vi.fn()} onDelete={vi.fn()} />);
+      
+      expect(screen.getByLabelText(/Video URL/)).toHaveValue('https://youtube.com');
+    });
+  
+    it('renders social input when social type is selected', () => {
+      const socialItem = { ...MOCK_ITEM, type: 'social' as const, content: '@twitter' };
+      render(<PropertyPanel item={socialItem} onUpdate={vi.fn()} onDelete={vi.fn()} />);
+      
+      expect(screen.getByLabelText(/Social Profile/)).toHaveValue('@twitter');
+    });
+  });

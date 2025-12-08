@@ -85,6 +85,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({ item, onUpdate, on
             <option value="text">Text</option>
             <option value="image">Image</option>
             <option value="app">App</option>
+            <option value="video">Video</option>
+            <option value="social">Social</option>
             </select>
         </label>
       </div>
@@ -119,6 +121,36 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({ item, onUpdate, on
                  <img src={item.content} alt="Preview" className="w-full h-full object-cover" />
              </div>
           )}
+        </div>
+      )}
+
+      {item.type === 'video' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Video URL (YouTube/Vimeo)
+            <input
+                type="text"
+                value={item.content}
+                onChange={(e) => onUpdate(item.id, { content: e.target.value })}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                placeholder="https://youtube.com/watch?v=..."
+            />
+          </label>
+        </div>
+      )}
+
+      {item.type === 'social' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Social Profile / Post URL
+            <input
+                type="text"
+                value={item.content}
+                onChange={(e) => onUpdate(item.id, { content: e.target.value })}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                placeholder="@username or link"
+            />
+          </label>
         </div>
       )}
 

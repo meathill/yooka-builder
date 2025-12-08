@@ -35,6 +35,24 @@ const MOCK_DATA: GridLayoutData = {
       type: 'text',
       content: 'Test Content',
     },
+    {
+      id: '2',
+      x: 3,
+      y: 1,
+      w: 1,
+      h: 1,
+      type: 'video',
+      content: 'https://youtube.com/watch?v=test',
+    },
+    {
+      id: '3',
+      x: 3,
+      y: 2,
+      w: 1,
+      h: 1,
+      type: 'social',
+      content: '@testuser',
+    },
   ],
 };
 
@@ -42,12 +60,14 @@ describe('GridCanvas', () => {
   it('renders grid items correctly', () => {
     render(<GridCanvas data={MOCK_DATA} onSelect={vi.fn()} />);
     expect(screen.getByText('Test Content')).toBeDefined();
+    expect(screen.getByText('https://youtube.com/watch?v=test')).toBeDefined();
+    expect(screen.getByText('@testuser')).toBeDefined();
   });
 
   it('renders correct number of items', () => {
     render(<GridCanvas data={MOCK_DATA} onSelect={vi.fn()} />);
-    // We expect 1 item
-    const items = screen.getAllByText('Test Content');
-    expect(items).toHaveLength(1);
+    // We expect 3 items
+    const items = screen.getAllByText(/Test Content|youtube|@testuser/);
+    expect(items).toHaveLength(3);
   });
 });

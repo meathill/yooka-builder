@@ -1,65 +1,44 @@
-/**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
- */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "web",
 	"main": ".open-next/worker.js",
-	"compatibility_date": "2025-03-01",
+  "name": "yooka-web",
+	"compatibility_date": "2025-12-01",
 	"compatibility_flags": [
 		"nodejs_compat",
 		"global_fetch_strictly_public"
 	],
+  "account_id": "fdc63eeea83ae8f5234357308b9a638b",
 	"assets": {
 		"binding": "ASSETS",
 		"directory": ".open-next/assets"
 	},
-	"observability": {
-		"enabled": true
-	},
-	/**
-	 * Smart Placement
-	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-	 */
-	// "placement": { "mode": "smart" },
-
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "yooka-db",
-			"database_id": "xxxx-xxxx-xxxx-xxxx" // TODO: Replace with real database ID
+			"database_name": "yooka-db"
 		}
 	],
+  "images": {
+    "binding": "IMAGES"
+  },
 	"kv_namespaces": [
 		{
 			"binding": "KV",
-			"id": "xxxx-xxxx-xxxx-xxxx" // TODO: Replace with real KV namespace ID
+			"id": "eaac71f451e14536aab356acbf63a630",
+      "preview_id": "eaac71f451e14536aab356acbf63a630"
 		}
-	]
-	/**
-	 * Bindings
-	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-	 * databases, object storage, AI inference, real-time communication and more.
-	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-	 */
-	/**
-	 * Environment Variables
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-	 */
-	// "vars": { "MY_VARIABLE": "production_value" }
-	/**
-	 * Note: Use secrets to store sensitive data.
-	 * https://developers.cloudflare.com/workers/configuration/secrets/
-	 */
-	/**
-	 * Static Assets
-	 * https://developers.cloudflare.com/workers/static-assets/binding/
-	 */
-	// "assets": { "directory": "./public/", "binding": "ASSETS" }
-	/**
-	 * Service Bindings (communicate between multiple Workers)
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-	 */
-	// "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
+	],
+  "observability": {
+    "enabled": true
+  },
+  "placement": { "mode": "smart" },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "yooka-web"
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://yooka.com"
+  }
 }
