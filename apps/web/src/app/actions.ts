@@ -34,17 +34,13 @@ export async function publishGrid(userId: string, data: GridLayoutData) {
     const userData = await db.select().from(user).where(eq(user.id, userId)).get();
     const username = userData?.username;
 
-    console.log(`[publishGrid] Publishing for userId: ${userId}, found username: ${username}`);
-
     if (!username) {
         return { success: false, error: 'Username not set' };
     }
 
     const key = `profile:${username}`;
-    console.log(`[publishGrid] Writing to KV key: ${key}`);
     await env.KV.put(key, JSON.stringify(data));
-    console.log(`[publishGrid] Write successful`);
-
+    
     return { success: true, username };
   } catch (error) {
     console.error('Failed to publish grid:', error);
@@ -52,24 +48,22 @@ export async function publishGrid(userId: string, data: GridLayoutData) {
   }
 }
 
-import { user as userTable } from "@/db/schema";
-
 export async function getGrid(userId: string) {
   const { env } = await getCloudflareContext();
   const db = drizzle(env.DB);
-
+  
   try {
     const stmt = env.DB.prepare(
         `SELECT * FROM grids WHERE user_id = ? ORDER BY updated_at DESC LIMIT 1`
     ).bind(userId);
-
+    
     const result = await stmt.first();
-
+    
     // Also fetch user profile for username
-    const userData = await db.select({ username: userTable.username }).from(userTable).where(eq(userTable.id, userId)).get();
-
+    const userData = await db.select({ username: user.username }).from(user).where(eq(user.id, userId)).get();
+    
     if (!result) return { data: null, username: userData?.username };
-
+    
     return {
         ...result,
         data: JSON.parse(result.data as string) as GridLayoutData,
@@ -105,12 +99,10 @@ export async function updateUsername(userId: string, username: string) {
 }
 
 export async function getPublicGrid(username: string) {
-    const { env } = await getCloudflareContext({ async: true });
+    const { env } = await getCloudflareContext();
     try {
         const key = `profile:${username}`;
-        console.log(`[getPublicGrid] Fetching key: ${key}`);
         const data = await env.KV.get(key);
-        console.log(`[getPublicGrid] Result for ${key}:`, data ? 'Found' : 'Null');
         if (!data) return null;
         return JSON.parse(data) as GridLayoutData;
     } catch (error) {

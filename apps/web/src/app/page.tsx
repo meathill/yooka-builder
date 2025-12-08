@@ -77,18 +77,6 @@ export default function Home() {
 
   const selectedItem = selectedId ? data.items.find(i => i.id === selectedId) || null : null;
 
-  // Debug logging
-  useEffect(() => {
-      console.log('State Update:', { 
-          userId, 
-          isSessionPending, 
-          loading, 
-          dataItemCount: data.items.length,
-          rows: data.rows,
-          cols: data.cols
-      });
-  }, [userId, isSessionPending, loading, data]);
-
   useEffect(() => {
     if (isSessionPending) return;
     
@@ -99,17 +87,12 @@ export default function Home() {
 
     async function loadData() {
       try {
-        console.log('Loading data for user:', userId);
         if (!userId) return;
         const savedGrid = await getGrid(userId);
-        console.log('Loaded grid result:', savedGrid ? 'Found' : 'Null', savedGrid?.data ? 'Has Data' : 'No Data');
         
         if (savedGrid) {
             if (savedGrid.data) {
-                console.log('Setting saved data:', savedGrid.data.items.length, 'items');
                 setData(savedGrid.data);
-            } else {
-                console.log('No saved data, keeping default');
             }
             if (savedGrid.username) setUsername(savedGrid.username);
         }

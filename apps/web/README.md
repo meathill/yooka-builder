@@ -4,13 +4,23 @@
 
 ## 功能
 
-- **网格布局**: 支持自定义 grid items (x, y, w, h)。
-- **多类型支持**: 目前支持 Text, Image, App 图标。
+- **网格布局**:
+  - 12x8 精细网格系统。
+  - 支持拖拽 (Drag & Drop) 调整位置，自动吸附。
+  - 支持全向缩放 (Resizing)，调整区块大小。
+  - 智能碰撞检测，防止布局重叠。
+- **可视化编辑**:
+  - 侧边栏属性面板：编辑文本、图片链接、应用名称。
+  - 实时预览编辑效果。
+- **用户系统**:
+  - 集成 Better-Auth (GitHub OAuth, Email)。
+  - 用户资料管理：设置个性化用户名 (Profile/Username)。
+- **发布与展示**:
+  - 一键发布到高性能 KV 存储。
+  - 公开展示页：`/u/[username]`，支持他人访问。
 - **数据存储**:
-  - D1: 存储用户的草稿和历史版本。
-  - KV: 存储发布的版本，提供高性能访问。
-- **用户认证**: 集成 Better-Auth (GitHub, Email)。
-- **Server Actions**: 安全的后端逻辑调用。
+  - D1: 存储草稿、历史版本和用户数据。
+  - KV: 存储已发布版本，优化读取速度。
 
 ## 开发指南
 
@@ -32,9 +42,10 @@ cp .dev.vars.example .dev.vars
 
 ### 数据库初始化
 
-本地开发需要初始化 D1 数据库：
+本地开发需要初始化 D1 数据库（使用 Drizzle 生成的标准迁移）：
 
 ```bash
+cd apps/web
 npx wrangler d1 execute yooka-db --local --file=migrations/0000_init_full.sql
 ```
 
