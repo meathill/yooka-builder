@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1765175078594,
+      "tag": "0000_wet_black_bolt",
+      "breakpoints": true
+    }
+  ]
+}

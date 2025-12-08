@@ -1,47 +1,59 @@
-# OpenNext Starter
+# Yooka Builder Web App
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+基于 Next.js + Tailwind CSS 的个人首页构建器。部署于 Cloudflare Workers，使用 D1 和 KV 存储数据。
 
-## Getting Started
+## 功能
 
-Read the documentation at https://opennext.js.org/cloudflare.
+- **网格布局**: 支持自定义 grid items (x, y, w, h)。
+- **多类型支持**: 目前支持 Text, Image, App 图标。
+- **数据存储**:
+  - D1: 存储用户的草稿和历史版本。
+  - KV: 存储发布的版本，提供高性能访问。
+- **用户认证**: 集成 Better-Auth (GitHub, Email)。
+- **Server Actions**: 安全的后端逻辑调用。
 
-## Develop
+## 开发指南
 
-Run the Next.js development server:
+### 前置要求
 
-```bash
-npm run dev
-# or similar package manager command
-```
+- Node.js & pnpm
+- Wrangler CLI (Cloudflare)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 环境变量
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-## Preview
-
-Preview the application locally on the Cloudflare runtime:
-
-```bash
-npm run preview
-# or similar package manager command
-```
-
-## Deploy
-
-Deploy the application to Cloudflare:
+复制 `.dev.vars.example` 到 `.dev.vars` 并填入密钥：
 
 ```bash
-npm run deploy
-# or similar package manager command
+cp .dev.vars.example .dev.vars
 ```
 
-## Learn More
+- `GITHUB_CLIENT_ID` & `GITHUB_CLIENT_SECRET`: 从 GitHub Developer Settings 获取 OAuth App 凭证。
+- `BETTER_AUTH_SECRET`: 任意随机字符串，用于加密 session。
 
-To learn more about Next.js, take a look at the following resources:
+### 数据库初始化
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+本地开发需要初始化 D1 数据库：
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npx wrangler d1 execute yooka-db --local --file=migrations/0000_init_full.sql
+```
+
+### 启动开发服务器
+
+```bash
+pnpm dev
+```
+
+### 运行测试
+
+```bash
+pnpm test
+```
+
+## 部署
+
+```bash
+pnpm run deploy
+```
+
+注意：首次部署前需要在 Cloudflare Dashboard 创建对应的 D1 数据库和 KV Namespace，并更新 `wrangler.jsonc` 中的 ID。

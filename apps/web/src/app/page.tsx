@@ -1,52 +1,208 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { GridCanvas } from '@/components/GridCanvas';
+import { PropertyPanel } from '@/components/PropertyPanel';
+import { GridLayoutData, GridItem } from '@/types/grid';
+import { getGrid, saveGrid, publishGrid } from './actions';
+import { authClient } from '@/lib/auth-client';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+const DEFAULT_DATA: GridLayoutData = {
+  rows: 12,
+  cols: 8,
+  items: [
+    {
+      id: 'item-1',
+      x: 1,
+      y: 1,
+      w: 4,
+      h: 4,
+      type: 'image',
+      content: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba',
+    },
+    {
+      id: 'item-2',
+      x: 5,
+      y: 1,
+      w: 4,
+      h: 2,
+      type: 'text',
+      content: 'Welcome to Yooka!',
+    },
+    {
+      id: 'item-3',
+      x: 5,
+      y: 3,
+      w: 2,
+      h: 2,
+      type: 'app',
+      content: 'Instagram',
+    },
+    {
+      id: 'item-4',
+      x: 7,
+      y: 3,
+      w: 2,
+      h: 2,
+      type: 'app',
+      content: 'Twitter',
+    },
+    {
+      id: 'item-5',
+      x: 1,
+      y: 5,
+      w: 8,
+      h: 4,
+      type: 'text',
+      content: 'Drag me around! This is a flexible grid system.',
+    },
+  ],
+};
 
 export default function Home() {
-	return (
-		<div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-			<main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-				<Image className="dark:invert" src="/next.svg" alt="Next.js logo" width={180} height={38} priority />
-				<ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-					<li className="mb-2 tracking-[-.01em]">
-						Get started by editing{" "}
-						<code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-							src/app/page.tsx
-						</code>
-						.
-					</li>
-					<li className="tracking-[-.01em]">Save and see your changes instantly.</li>
-				</ol>
+  const [data, setData] = useState<GridLayoutData>(DEFAULT_DATA);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { data: session, isPending: isSessionPending } = authClient.useSession();
+  const router = useRouter();
+  
+  // Use session.user.id if available, otherwise null
+  const userId = session?.user?.id;
 
-				<div className="flex gap-4 items-center flex-col sm:flex-row">
-					<a
-						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-						href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Read our docs
-					</a>
-				</div>
-			</main>
-			<footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
-					Learn
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image aria-hidden src="/globe.svg" alt="Globe icon" width={16} height={16} />
-					Go to nextjs.org →
-				</a>
-			</footer>
-		</div>
-	);
+  const selectedItem = selectedId ? data.items.find(i => i.id === selectedId) || null : null;
+
+  useEffect(() => {
+    if (isSessionPending) return;
+    
+    if (!userId) {
+        // Option A: Redirect to sign-in
+        // router.push('/sign-in');
+        // Option B: Allow demo mode (but we want to test integration)
+        setLoading(false);
+        return;
+    }
+
+    async function loadData() {
+      if (!userId) return;
+      const savedGrid = await getGrid(userId);
+      if (savedGrid && savedGrid.data) {
+        setData(savedGrid.data);
+      }
+      setLoading(false);
+    }
+    loadData();
+  }, [userId, isSessionPending, router]);
+
+  const handleSave = async () => {
+    if (!userId) {
+        alert('Please sign in to save.');
+        return;
+    }
+    const result = await saveGrid(userId, data);
+    if (result.success) {
+      alert('Saved successfully!');
+    } else {
+      alert('Failed to save.');
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!userId) return;
+    const result = await publishGrid(userId, data);
+     if (result.success) {
+      alert('Published successfully to Edge!');
+    } else {
+      alert('Failed to publish.');
+    }
+  }
+
+  const handleUpdateItem = (id: string, updates: Partial<GridItem>) => {
+      const newItems = data.items.map(item => item.id === id ? { ...item, ...updates } : item);
+      setData({ ...data, items: newItems });
+  };
+
+  const handleDeleteItem = (id: string) => {
+      if (confirm('Are you sure you want to delete this item?')) {
+          const newItems = data.items.filter(item => item.id !== id);
+          setData({ ...data, items: newItems });
+          setSelectedId(null);
+      }
+  };
+  
+  if (isSessionPending) {
+      return <div className="min-h-screen flex items-center justify-center">Loading session...</div>;
+  }
+
+  if (!userId) {
+      return (
+          <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+              <h1 className="text-2xl font-bold">Welcome to Yooka Builder</h1>
+              <p>Please sign in to start building your page.</p>
+              <div className="flex gap-4">
+                  <Link href="/sign-in" className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700">
+                      Sign In
+                  </Link>
+                   <Link href="/sign-up" className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50">
+                      Sign Up
+                  </Link>
+              </div>
+          </div>
+      )
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <header className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-20 relative">
+        <h1 className="text-xl font-bold">Yooka Builder</h1>
+        <div className="flex gap-2 items-center">
+            <span className="text-sm text-gray-500">{session.user.email}</span>
+            <button 
+                onClick={() => authClient.signOut()}
+                className="text-sm text-red-600 hover:underline mr-4"
+            >
+                Sign Out
+            </button>
+             <button 
+                onClick={handlePublish}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                disabled={loading}
+            >
+            Publish
+            </button>
+            <button 
+                onClick={handleSave}
+                className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 disabled:opacity-50"
+                disabled={loading}
+            >
+            Save Draft
+            </button>
+        </div>
+      </header>
+      <div className="flex flex-1 overflow-hidden">
+        <main className="flex-1 relative overflow-hidden flex flex-col">
+            {loading ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
+                    Loading data...
+                </div>
+            ) : (
+                <GridCanvas 
+                    data={data} 
+                    onUpdate={(newData) => setData(newData)}
+                    selectedId={selectedId}
+                    onSelect={setSelectedId}
+                />
+            )}
+        </main>
+        <aside className="w-80 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-10 flex flex-col">
+            <PropertyPanel 
+                item={selectedItem} 
+                onUpdate={handleUpdateItem} 
+                onDelete={handleDeleteItem}
+            />
+        </aside>
+      </div>
+    </div>
+  );
 }
