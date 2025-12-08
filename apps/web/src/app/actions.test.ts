@@ -14,6 +14,29 @@ const mockPrepare = vi.fn().mockReturnValue({
 });
 const mockPut = vi.fn();
 
+// Mock Drizzle
+const mockDrizzleSelect = vi.fn().mockReturnThis();
+const mockDrizzleFrom = vi.fn().mockReturnThis();
+const mockDrizzleWhere = vi.fn().mockReturnThis();
+const mockDrizzleGet = vi.fn();
+
+vi.mock('drizzle-orm/d1', () => ({
+  drizzle: () => ({
+    select: mockDrizzleSelect,
+    from: mockDrizzleFrom,
+    where: mockDrizzleWhere,
+    get: mockDrizzleGet, // Add get to mock
+  })
+}));
+
+// Mock schema and eq
+vi.mock('@/db/schema', () => ({
+  user: { id: 'id', username: 'username' },
+}));
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn(),
+}));
+
 vi.mock('@opennextjs/cloudflare', () => ({
   getCloudflareContext: async () => ({
     env: {
@@ -36,6 +59,13 @@ const MOCK_DATA: GridLayoutData = {
 describe('Grid Server Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Setup chain mocks
+    mockDrizzleSelect.mockReturnThis();
+    mockDrizzleFrom.mockReturnThis();
+    mockDrizzleWhere.mockReturnValue({
+        get: mockDrizzleGet
+    });
   });
 
   describe('saveGrid', () => {
@@ -69,12 +99,13 @@ describe('Grid Server Actions', () => {
   });
 
   describe('getGrid', () => {
-    it('should retrieve grid data from D1', async () => {
+    it('should retrieve grid data and username from D1', async () => {
       mockFirst.mockResolvedValue({
         id: 'grid1',
         user_id: 'user1',
         data: JSON.stringify(MOCK_DATA),
       });
+      mockDrizzleGet.mockResolvedValue({ username: 'testUser' });
 
       const result = await getGrid('user1');
 
@@ -82,6 +113,7 @@ describe('Grid Server Actions', () => {
         id: 'grid1',
         user_id: 'user1',
         data: MOCK_DATA,
+        username: 'testUser',
       });
       expect(mockPrepare).toHaveBeenCalledWith(
         expect.stringContaining('SELECT * FROM grids')
@@ -89,26 +121,40 @@ describe('Grid Server Actions', () => {
       expect(mockBind).toHaveBeenCalledWith('user1');
     });
 
-    it('should return null if no grid found', async () => {
+    it('should return basic object with null data if no grid found but user exists', async () => {
       mockFirst.mockResolvedValue(null);
+      mockDrizzleGet.mockResolvedValue({ username: 'testUser' });
 
       const result = await getGrid('user1');
 
-      expect(result).toBeNull();
+      expect(result).toEqual({
+          data: null,
+          username: 'testUser'
+      });
     });
   });
 
   describe('publishGrid', () => {
-    it('should put grid data into KV', async () => {
+    it('should put grid data into KV if username exists', async () => {
        mockPut.mockResolvedValue(undefined);
+       mockDrizzleGet.mockResolvedValue({ username: 'validUser' });
 
        const result = await publishGrid('user1', MOCK_DATA);
 
        expect(result.success).toBe(true);
        expect(mockPut).toHaveBeenCalledWith(
-         'grid:user1',
+         'profile:validUser',
          JSON.stringify(MOCK_DATA)
        );
     });
+
+    it('should fail if username is not set', async () => {
+        mockDrizzleGet.mockResolvedValue(null);
+ 
+        const result = await publishGrid('user1', MOCK_DATA);
+ 
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Username not set');
+     });
   });
 });

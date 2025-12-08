@@ -16,10 +16,14 @@
         - [x] 添加 Resize Handle
         - [x] 实现 Resizing 交互逻辑 (Pointer Events)
         - [x] 处理缩放冲突检测
-    - [ ] **添加属性编辑面板**
-        - [ ] 创建 `PropertyPanel` 组件
-        - [ ] 实现点击选中 (Selection State)
-        - [ ] 实现属性修改与实时预览
+    - [x] **添加属性编辑面板**
+        - [x] 创建 `PropertyPanel` 组件
+        - [x] 实现点击选中 (Selection State)
+        - [x] 实现属性修改与实时预览
+- [ ] **用户资料与公开页**
+    - [ ] 创建 Profile 设置页 (设置 Username)
+    - [ ] 创建公开展示页路由 `/u/[username]`
+    - [ ] 实现公开页的数据获取与渲染 (Read-only Grid)
 - [ ] **用户体验优化**
     - [ ] 拖拽时的视觉反馈 (Placeholder/Shadow)
     - [ ] 碰撞检测与避免重叠 (可选: 自动重排)

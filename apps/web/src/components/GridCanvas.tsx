@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useRef } from 'react';
 import { GridLayoutData, GridItem } from '../types/grid';
 import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor, DragStartEvent, DragOverlay } from '@dnd-kit/core';
@@ -58,19 +60,25 @@ export const GridCanvas: React.FC<GridCanvasProps> = ({
     })
   );
 
+  // Sync state with props if props change
   React.useEffect(() => {
+    // console.log('GridCanvas received data update:', initialData.items.length, 'items');
     setData(initialData);
   }, [initialData]);
 
   const { rows, cols, items } = data;
 
+  // Calculate row height to make cells square
   React.useEffect(() => {
       const updateHeight = () => {
           if (containerRef.current) {
               const width = containerRef.current.offsetWidth;
               const gap = 16; 
               const cellWidth = (width - (cols - 1) * gap) / cols;
+              // console.log('GridCanvas resize:', width, cols, cellWidth);
               setRowHeight(cellWidth);
+          } else {
+              // console.warn('GridCanvas containerRef is null');
           }
       };
 
@@ -244,27 +252,30 @@ export const GridCanvas: React.FC<GridCanvasProps> = ({
     gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
     gridTemplateRows: `repeat(${rows}, ${rowHeight}px)`,
     gap: '1rem',
+    height: '100%', // Ensure it takes height
+    minHeight: rows * (rowHeight || 10) + (rows - 1) * 16, // Fallback calc
   };
 
+  // Generate background grid cells
   const totalCells = rows * cols;
   const backgroundCells = Array.from({ length: totalCells }, (_, i) => (
       <div 
         key={i} 
-        className="border border-gray-200 dark:border-gray-700/50 rounded-lg bg-white/30 dark:bg-gray-800/30 border-dashed"
+        className="border border-gray-200 dark:border-gray-700/50 rounded-lg bg-white/30 dark:bg-gray-800/30 border-dashed h-full w-full"
       />
   ));
 
   return (
-    <div className="w-full h-full p-4 bg-gray-50 dark:bg-gray-900 overflow-auto">
+    <div className="w-full h-full p-4 bg-gray-50 dark:bg-gray-900 overflow-auto flex flex-col">
       <DndContext 
         sensors={sensors} 
         onDragStart={readOnly ? undefined : handleDragStart}
         onDragMove={readOnly ? undefined : handleDragMove}
         onDragEnd={readOnly ? undefined : handleDragEnd}
       >
-        <div className="w-full max-w-4xl mx-auto relative rounded-xl p-4 box-border border-2 border-transparent">
+        <div className="w-full max-w-4xl mx-auto relative rounded-xl p-4 box-border border-2 border-transparent flex-1 min-h-0">
             {/* Background Grid Layer */}
-            <div style={{ ...gridStyle, position: 'absolute', inset: '1rem', zIndex: 0 }}>
+            <div style={{ ...gridStyle, position: 'absolute', inset: '1rem', zIndex: 0, pointerEvents: 'none' }}>
                 {backgroundCells}
             </div>
 

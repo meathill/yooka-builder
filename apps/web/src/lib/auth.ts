@@ -29,6 +29,7 @@ export function getAuth(env: Cloudflare.Env) {
     trustedOrigins: [
        // Add production URL here
        "http://localhost:3000",
+       "http://localhost:3030",
     ]
   });
 }
