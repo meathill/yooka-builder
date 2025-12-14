@@ -40,7 +40,12 @@ const MOCK_DATA: GridLayoutData = {
 
 describe('GridCanvas DnD', () => {
   it('renders draggable items', () => {
-    render(<GridCanvas data={MOCK_DATA} onSelect={vi.fn()} />);
+    render(
+      <GridCanvas
+        data={MOCK_DATA}
+        onSelect={vi.fn()}
+      />,
+    );
     expect(screen.getByText('Test Content')).toBeDefined();
   });
 });

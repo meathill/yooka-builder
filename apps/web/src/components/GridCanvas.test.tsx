@@ -58,14 +58,24 @@ const MOCK_DATA: GridLayoutData = {
 
 describe('GridCanvas', () => {
   it('renders grid items correctly', () => {
-    render(<GridCanvas data={MOCK_DATA} onSelect={vi.fn()} />);
+    render(
+      <GridCanvas
+        data={MOCK_DATA}
+        onSelect={vi.fn()}
+      />,
+    );
     expect(screen.getByText('Test Content')).toBeDefined();
     expect(screen.getByText('https://youtube.com/watch?v=test')).toBeDefined();
     expect(screen.getByText('@testuser')).toBeDefined();
   });
 
   it('renders correct number of items', () => {
-    render(<GridCanvas data={MOCK_DATA} onSelect={vi.fn()} />);
+    render(
+      <GridCanvas
+        data={MOCK_DATA}
+        onSelect={vi.fn()}
+      />,
+    );
     // We expect 3 items
     const items = screen.getAllByText(/Test Content|youtube|@testuser/);
     expect(items).toHaveLength(3);

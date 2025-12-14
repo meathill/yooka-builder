@@ -1,6 +1,6 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { getAuth } from "@/lib/auth";
-import { NextRequest } from "next/server";
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getAuth } from '@/lib/auth';
+import { NextRequest } from 'next/server';
 
 const handler = async (request: NextRequest) => {
   const { env } = await getCloudflareContext();

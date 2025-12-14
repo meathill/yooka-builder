@@ -14,15 +14,15 @@ const mockUpdate = vi.fn();
 const mockSet = vi.fn().mockReturnValue({
   where: vi.fn().mockReturnValue({
     run: mockUpdate,
-  })
+  }),
 });
 
 vi.mock('drizzle-orm/d1', () => ({
   drizzle: () => ({
     update: vi.fn(() => ({
-        set: mockSet
-    }))
-  })
+      set: mockSet,
+    })),
+  }),
 }));
 
 vi.mock('@/db/schema', () => ({
@@ -30,7 +30,7 @@ vi.mock('@/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-    eq: vi.fn(),
+  eq: vi.fn(),
 }));
 
 describe('User Actions', () => {
@@ -46,9 +46,9 @@ describe('User Actions', () => {
 
   it('should update username if valid', async () => {
     mockUpdate.mockResolvedValue({ success: true });
-    
+
     const result = await updateUsername('user1', 'validUser');
-    
+
     expect(result.success).toBe(true);
     expect(mockSet).toHaveBeenCalledWith({ username: 'validUser' });
   });

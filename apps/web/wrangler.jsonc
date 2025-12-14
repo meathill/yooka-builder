@@ -1,33 +1,31 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"main": ".open-next/worker.js",
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
   "name": "yooka-web",
-	"compatibility_date": "2025-12-01",
-	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
-	],
+  "compatibility_date": "2025-12-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "account_id": "fdc63eeea83ae8f5234357308b9a638b",
-	"assets": {
-		"binding": "ASSETS",
-		"directory": ".open-next/assets"
-	},
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "yooka-db"
-		}
-	],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "yooka-db",
+      "database_id": "dummy-id-for-local-dev"
+    }
+  ],
   "images": {
     "binding": "IMAGES"
   },
-	"kv_namespaces": [
-		{
-			"binding": "KV",
-			"id": "eaac71f451e14536aab356acbf63a630",
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "eaac71f451e14536aab356acbf63a630",
       "preview_id": "eaac71f451e14536aab356acbf63a630"
-		}
-	],
+    }
+  ],
   "observability": {
     "enabled": true
   },

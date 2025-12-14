@@ -26,7 +26,7 @@ const MOCK_ITEM = {
 describe('DraggableGridItem Resizing', () => {
   it('renders resize handle when not readOnly', () => {
     render(
-      <DraggableGridItem 
+      <DraggableGridItem
         item={MOCK_ITEM}
         gridCols={4}
         gridRows={4}
@@ -35,12 +35,11 @@ describe('DraggableGridItem Resizing', () => {
         onResizeStart={vi.fn()}
         onResizeMove={vi.fn()}
         onResizeEnd={vi.fn()}
-        readOnly={false}
-      >
+        readOnly={false}>
         <div>Child</div>
-      </DraggableGridItem>
+      </DraggableGridItem>,
     );
-    
+
     // Look for the SVG icon inside the handle
     const handle = document.querySelector('.cursor-se-resize');
     expect(handle).toBeDefined();
@@ -48,7 +47,7 @@ describe('DraggableGridItem Resizing', () => {
 
   it('does not render resize handle when readOnly', () => {
     render(
-      <DraggableGridItem 
+      <DraggableGridItem
         item={MOCK_ITEM}
         gridCols={4}
         gridRows={4}
@@ -57,12 +56,11 @@ describe('DraggableGridItem Resizing', () => {
         onResizeStart={vi.fn()}
         onResizeMove={vi.fn()}
         onResizeEnd={vi.fn()}
-        readOnly={true}
-      >
+        readOnly={true}>
         <div>Child</div>
-      </DraggableGridItem>
+      </DraggableGridItem>,
     );
-    
+
     const handle = document.querySelector('.cursor-se-resize');
     expect(handle).toBeNull();
   });

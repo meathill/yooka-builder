@@ -14,36 +14,39 @@ export default function SignUp() {
 
   const handleSignUp = async () => {
     setLoading(true);
-    await authClient.signUp.email({
-      email,
-      password,
-      name,
-    }, {
-      onSuccess: () => {
-        router.push('/');
+    await authClient.signUp.email(
+      {
+        email,
+        password,
+        name,
       },
-      onError: (ctx) => {
-        alert(ctx.error.message);
-        setLoading(false);
-      }
-    });
+      {
+        onSuccess: () => {
+          router.push('/');
+        },
+        onError: (ctx) => {
+          alert(ctx.error.message);
+          setLoading(false);
+        },
+      },
+    );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 px-4">
+      <div className="max-w-md w-full space-y-8 bg-white dark:bg-zinc-800 p-8 rounded-xl shadow">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-zinc-900 dark:text-white">
             Create your account
           </h2>
         </div>
         <div className="mt-8 space-y-6">
           <div className="rounded-md shadow-sm -space-y-px">
-             <div>
+            <div>
               <input
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-zinc-300 placeholder-zinc-500 text-zinc-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -53,7 +56,7 @@ export default function SignUp() {
               <input
                 type="email"
                 required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full px-3 py-2 border border-zinc-300 placeholder-zinc-500 text-zinc-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -63,7 +66,7 @@ export default function SignUp() {
               <input
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-zinc-300 placeholder-zinc-500 text-zinc-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -75,14 +78,15 @@ export default function SignUp() {
             <button
               onClick={handleSignUp}
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
               {loading ? 'Creating account...' : 'Sign up'}
             </button>
           </div>
 
-           <div className="text-center text-sm">
-            <Link href="/sign-in" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <div className="text-center text-sm">
+            <Link
+              href="/sign-in"
+              className="font-medium text-indigo-600 hover:text-indigo-500">
               Already have an account? Sign in
             </Link>
           </div>

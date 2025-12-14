@@ -68,38 +68,38 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [username, setUsername] = useState<string | undefined>(undefined);
-  
+
   const { data: session, isPending: isSessionPending } = authClient.useSession();
   const router = useRouter();
-  
+
   const userId = session?.user?.id;
 
-  const selectedItem = selectedId ? data.items.find(i => i.id === selectedId) || null : null;
+  const selectedItem = selectedId ? data.items.find((i) => i.id === selectedId) || null : null;
 
   useEffect(() => {
     if (isSessionPending) return;
-    
+
     if (!userId) {
-        // Redirect to sign-in if not logged in, since this is a protected app route
-        router.push('/sign-in');
-        return;
+      // Redirect to sign-in if not logged in, since this is a protected app route
+      router.push('/sign-in');
+      return;
     }
 
     async function loadData() {
       try {
         if (!userId) return;
         const savedGrid = await getGrid(userId);
-        
+
         if (savedGrid) {
-            if (savedGrid.data) {
-                setData(savedGrid.data);
-            }
-            if (savedGrid.username) setUsername(savedGrid.username);
+          if (savedGrid.data) {
+            setData(savedGrid.data);
+          }
+          if (savedGrid.username) setUsername(savedGrid.username);
         }
       } catch (e) {
-          console.error("Error loading data", e);
+        console.error('Error loading data', e);
       } finally {
-          setLoading(false);
+        setLoading(false);
       }
     }
     loadData();
@@ -117,140 +117,174 @@ export default function EditorPage() {
 
   const handlePublish = async () => {
     if (!userId) return;
-    
+
     if (!username) {
-        setIsProfileOpen(true);
-        alert("Please set a username before publishing.");
-        return;
+      setIsProfileOpen(true);
+      alert('Please set a username before publishing.');
+      return;
     }
 
     const result = await publishGrid(userId, data);
-     if (result.success) {
+    if (result.success) {
       const url = `${window.location.origin}/u/${username}`;
       window.open(url, '_blank');
       alert(`Published successfully!`);
     } else {
       alert('Failed to publish: ' + result.error);
     }
-  }
+  };
 
   const handleUpdateItem = (id: string, updates: Partial<GridItem>) => {
-      const newItems = data.items.map(item => item.id === id ? { ...item, ...updates } : item);
-      setData({ ...data, items: newItems });
+    const newItems = data.items.map((item) => (item.id === id ? { ...item, ...updates } : item));
+    setData({ ...data, items: newItems });
   };
 
   const handleDeleteItem = (id: string) => {
-      if (confirm('Are you sure you want to delete this item?')) {
-          const newItems = data.items.filter(item => item.id !== id);
-          setData({ ...data, items: newItems });
-          setSelectedId(null);
-      }
+    if (confirm('Are you sure you want to delete this item?')) {
+      const newItems = data.items.filter((item) => item.id !== id);
+      setData({ ...data, items: newItems });
+      setSelectedId(null);
+    }
   };
 
   if (isSessionPending || loading) {
-      return <div className="min-h-screen flex items-center justify-center text-gray-800 dark:text-white bg-white dark:bg-gray-900">Loading editor...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-zinc-800 dark:text-white bg-white dark:bg-zinc-900">
+        Loading editor...
+      </div>
+    );
   }
 
   if (!userId) {
-      return null; // Will redirect
+    return null; // Will redirect
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-      <header className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 z-20 relative">
-        <Link href="/" className="text-xl font-bold hover:opacity-80">Yooka Builder</Link>
+    <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
+      <header className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-white dark:bg-zinc-900 z-20 relative">
+        <Link
+          href="/"
+          className="text-xl font-bold hover:opacity-80">
+          Yooka Builder
+        </Link>
         <div className="flex gap-2 items-center">
-            {username && (
-                <a 
-                    href={`/u/${username}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 mr-2 flex items-center gap-1"
-                >
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    View Page
-                </a>
-            )}
-            <button 
-                onClick={() => setIsProfileOpen(true)}
-                className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mr-2 flex items-center gap-1"
-            >
-                <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs overflow-hidden">
-                    {session?.user?.image ? <img src={session.user.image} alt="avatar" /> : session?.user?.name?.charAt(0)}
-                </div>
-                {username || "Set Username"}
-            </button>
-            <span className="h-4 w-px bg-gray-300 mx-2"></span>
-            <button 
-                onClick={async () => {
-                    await authClient.signOut();
-                    window.location.href = '/';
-                }}
-                className="text-sm text-red-600 hover:underline mr-4"
-            >
-                Sign Out
-            </button>
-             <button 
-                onClick={handlePublish}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
-                disabled={loading}
-            >
+          {username && (
+            <a
+              href={`/u/${username}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 mr-2 flex items-center gap-1">
+              <svg
+                width="16"
+                height="16"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+              View Page
+            </a>
+          )}
+          <button
+            onClick={() => setIsProfileOpen(true)}
+            className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white mr-2 flex items-center gap-1">
+            <div className="w-6 h-6 bg-zinc-200 rounded-full flex items-center justify-center text-xs overflow-hidden">
+              {session?.user?.image ? (
+                <img
+                  src={session.user.image}
+                  alt="avatar"
+                />
+              ) : (
+                session?.user?.name?.charAt(0)
+              )}
+            </div>
+            {username || 'Set Username'}
+          </button>
+          <span className="h-4 w-px bg-zinc-300 mx-2"></span>
+          <button
+            onClick={async () => {
+              await authClient.signOut();
+              window.location.href = '/';
+            }}
+            className="text-sm text-red-600 hover:underline mr-4">
+            Sign Out
+          </button>
+          <button
+            onClick={handlePublish}
+            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+            disabled={loading}>
             Publish
-            </button>
-            <button 
-                onClick={handleSave}
-                className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 disabled:opacity-50"
-                disabled={loading}
-            >
+          </button>
+          <button
+            onClick={handleSave}
+            className="bg-zinc-900 text-white px-4 py-2 rounded-md hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 disabled:opacity-50 transition-colors"
+            disabled={loading}>
             Save Draft
-            </button>
+          </button>
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden relative">
         <main className="flex-1 relative overflow-hidden flex flex-col">
-            <GridCanvas 
-                data={data} 
-                onUpdate={(newData) => setData(newData)}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-            />
+          <GridCanvas
+            data={data}
+            onUpdate={(newData) => setData(newData)}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
         </main>
-        
+
         {/* Desktop Sidebar */}
-        <aside className="hidden md:flex w-80 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-10 flex-col">
-            <PropertyPanel 
-                item={selectedItem} 
-                onUpdate={handleUpdateItem} 
-                onDelete={handleDeleteItem}
-            />
+        <aside className="hidden md:flex w-80 border-l border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 z-10 flex-col">
+          <PropertyPanel
+            item={selectedItem}
+            onUpdate={handleUpdateItem}
+            onDelete={handleDeleteItem}
+          />
         </aside>
 
         {/* Mobile Bottom Sheet */}
         {selectedItem && (
-            <div className="md:hidden fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-xl max-h-[50vh] overflow-y-auto flex flex-col animate-in slide-in-from-bottom duration-200">
-                <div className="sticky top-0 bg-inherit z-10 flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-700">
-                    <h3 className="font-bold">Edit Item</h3>
-                    <button onClick={() => setSelectedId(null)} className="text-gray-500">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                </div>
-                <PropertyPanel 
-                    item={selectedItem} 
-                    onUpdate={handleUpdateItem} 
-                    onDelete={handleDeleteItem}
-                />
+          <div className="md:hidden fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-xl max-h-[50vh] overflow-y-auto flex flex-col animate-in slide-in-from-bottom duration-200">
+            <div className="sticky top-0 bg-inherit z-10 flex justify-between items-center p-4 border-b border-zinc-100 dark:border-zinc-700">
+              <h3 className="font-bold">Edit Item</h3>
+              <button
+                onClick={() => setSelectedId(null)}
+                className="text-zinc-500">
+                <svg
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
             </div>
+            <PropertyPanel
+              item={selectedItem}
+              onUpdate={handleUpdateItem}
+              onDelete={handleDeleteItem}
+            />
+          </div>
         )}
       </div>
-      
-      <ProfileModal 
-        isOpen={isProfileOpen} 
-        onClose={() => setIsProfileOpen(false)} 
+
+      <ProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
         currentUsername={username}
         onSuccess={(newUsername) => {
-            setUsername(newUsername);
+          setUsername(newUsername);
         }}
       />
     </div>
