@@ -104,43 +104,267 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({ item, onUpdate, on
         </div>
       )}
 
-      {item.type === 'image' && (
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-            Image URL
-            <input
-              type="text"
-              value={item.content}
-              onChange={(e) => onUpdate(item.id, { content: e.target.value })}
-              className="mt-1 w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 mb-2"
-            />
-          </label>
-          {item.content && (
-            <div className="rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-700 h-32 relative">
-              <img
-                src={item.content}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-        </div>
-      )}
+            {item.type === 'image' && (
 
-      {item.type === 'video' && (
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-            Video URL (YouTube/Vimeo)
-            <input
-              type="text"
-              value={item.content}
-              onChange={(e) => onUpdate(item.id, { content: e.target.value })}
-              className="mt-1 w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
-              placeholder="https://youtube.com/watch?v=..."
-            />
-          </label>
-        </div>
-      )}
+              <div>
+
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+
+                  Image URL
+
+                  <div className="flex flex-col gap-2 mt-1">
+
+                      <input
+
+                          type="text"
+
+                          value={item.content}
+
+                          onChange={(e) => onUpdate(item.id, { content: e.target.value })}
+
+                          className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+
+                          placeholder="https://..."
+
+                      />
+
+                      <div className="relative">
+
+                          <input
+
+                              type="file"
+
+                              accept="image/*"
+
+                              onChange={async (e) => {
+
+                                  const file = e.target.files?.[0];
+
+                                  if (!file) return;
+
+                                  
+
+                                  // Simple upload handling
+
+                                  const formData = new FormData();
+
+                                  formData.append('file', file);
+
+                                  
+
+                                                              try {
+
+                                  
+
+                                                                  const res = await fetch('/api/upload', {
+
+                                  
+
+                                                                      method: 'POST',
+
+                                  
+
+                                                                      body: formData
+
+                                  
+
+                                                                  });
+
+                                  
+
+                                                                  const data = await res.json() as { url?: string };
+
+                                  
+
+                                                                  if (data.url) {
+
+                                  
+
+                                                                      onUpdate(item.id, { content: data.url });
+
+                                  
+
+                                                                  } else {
+
+                                  
+
+                                                                      alert('Upload failed');
+
+                                  
+
+                                                                  }
+
+                                  
+
+                                                              } catch (err) {
+
+                                      console.error(err);
+
+                                      alert('Upload error');
+
+                                  }
+
+                              }}
+
+                              className="block w-full text-sm text-zinc-500
+
+                              file:mr-4 file:py-2 file:px-4
+
+                              file:rounded-md file:border-0
+
+                              file:text-sm file:font-semibold
+
+                              file:bg-indigo-50 file:text-indigo-700
+
+                              hover:file:bg-indigo-100 dark:file:bg-indigo-900/30 dark:file:text-indigo-300
+
+                              "
+
+                          />
+
+                      </div>
+
+                  </div>
+
+                </label>
+
+                {item.content && (
+
+                   <div className="rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-700 h-32 relative mt-2">
+
+                       <img src={item.content} alt="Preview" className="w-full h-full object-cover" />
+
+                   </div>
+
+                )}
+
+              </div>
+
+            )}
+
+      
+
+            {item.type === 'video' && (
+
+              <div>
+
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+
+                  Video URL (YouTube/Vimeo or Upload)
+
+                  <div className="flex flex-col gap-2 mt-1">
+
+                      <input
+
+                          type="text"
+
+                          value={item.content}
+
+                          onChange={(e) => onUpdate(item.id, { content: e.target.value })}
+
+                          className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+
+                          placeholder="https://..."
+
+                      />
+
+                      <input
+
+                          type="file"
+
+                          accept="video/*"
+
+                          onChange={async (e) => {
+
+                              const file = e.target.files?.[0];
+
+                              if (!file) return;
+
+                              
+
+                              const formData = new FormData();
+
+                              formData.append('file', file);
+
+                              
+
+                                                      try {
+
+                              
+
+                                                          const res = await fetch('/api/upload', {
+
+                              
+
+                                                              method: 'POST',
+
+                              
+
+                                                              body: formData
+
+                              
+
+                                                          });
+
+                              
+
+                                                          const data = await res.json() as { url?: string };
+
+                              
+
+                                                          if (data.url) {
+
+                              
+
+                                                              onUpdate(item.id, { content: data.url });
+
+                              
+
+                                                          } else {
+
+                              
+
+                                                              alert('Upload failed');
+
+                              
+
+                                                          }
+
+                              
+
+                                                      } catch (err) {
+
+                                  console.error(err);
+
+                                  alert('Upload error');
+
+                              }
+
+                          }}
+
+                          className="block w-full text-sm text-zinc-500
+
+                          file:mr-4 file:py-2 file:px-4
+
+                          file:rounded-md file:border-0
+
+                          file:text-sm file:font-semibold
+
+                          file:bg-indigo-50 file:text-indigo-700
+
+                          hover:file:bg-indigo-100 dark:file:bg-indigo-900/30 dark:file:text-indigo-300
+
+                          "
+
+                      />
+
+                  </div>
+
+                </label>
+
+              </div>
+
+            )}
 
       {item.type === 'social' && (
         <div>

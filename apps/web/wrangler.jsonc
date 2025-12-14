@@ -44,6 +44,7 @@
     }
   ],
   "vars": {
-    "NEXT_PUBLIC_SITE_URL": "https://yooka.com"
+    "NEXT_PUBLIC_SITE_URL": "https://yooka.com",
+    "NEXT_PUBLIC_R2_BUCKET_URL": "https://i.yooka.me"
   }
 }
