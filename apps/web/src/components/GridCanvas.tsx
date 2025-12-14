@@ -18,6 +18,7 @@ interface GridCanvasProps {
   onUpdate?: (newData: GridLayoutData) => void;
   selectedId?: string | null;
   onSelect?: (id: string) => void;
+  onAdd?: (x: number, y: number) => void;
   readOnly?: boolean;
 }
 
@@ -107,6 +108,7 @@ export const GridCanvas: React.FC<GridCanvasProps> = ({
   onUpdate,
   selectedId,
   onSelect,
+  onAdd,
   readOnly = false,
 }) => {
   const [data, setData] = useState(initialData);
@@ -321,22 +323,39 @@ export const GridCanvas: React.FC<GridCanvasProps> = ({
   };
 
   const gridStyle: React.CSSProperties = {
-    display: 'grid',
     gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
     gridTemplateRows: `repeat(${rows}, ${rowHeight}px)`,
-    gap: '1rem',
-    height: '100%', // Ensure it takes height
     minHeight: rows * (rowHeight || 10) + (rows - 1) * 16, // Fallback calc
+  };
+
+  // Helper to check if a specific cell coordinate is occupied
+  const isCellOccupied = (x: number, y: number) => {
+    return items.some((item) => x >= item.x && x < item.x + item.w && y >= item.y && y < item.y + item.h);
   };
 
   // Generate background grid cells
   const totalCells = rows * cols;
-  const backgroundCells = Array.from({ length: totalCells }, (_, i) => (
-    <div
-      key={i}
-      className="border border-zinc-200 dark:border-zinc-700/50 rounded-lg bg-white/30 dark:bg-zinc-800/30 border-dashed h-full w-full"
-    />
-  ));
+  const backgroundCells = Array.from({ length: totalCells }, (_, i) => {
+    const x = (i % cols) + 1;
+    const y = Math.floor(i / cols) + 1;
+    const occupied = isCellOccupied(x, y);
+
+    return (
+      <div
+        key={i}
+        onClick={() => {
+          if (!readOnly && !occupied && onAdd) {
+            onAdd(x, y);
+          }
+        }}
+        className={`border bg-red-500 border-zinc-200 hover:border-sky-200 dark:border-zinc-700/50 dark:hover:borrder-sky-700/50 rounded-lg border-dashed h-full w-full transition-colors ${
+          !readOnly && !occupied
+            ? 'bg-white/30 dark:bg-zinc-800/30 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 cursor-pointer'
+            : 'bg-transparent'
+        }`}
+      />
+    );
+  });
 
   return (
     <div className="w-full h-full p-4 bg-zinc-50 dark:bg-zinc-900 overflow-auto flex flex-col">
@@ -347,14 +366,17 @@ export const GridCanvas: React.FC<GridCanvasProps> = ({
         onDragEnd={readOnly ? undefined : handleDragEnd}>
         <div className="w-full max-w-4xl mx-auto relative rounded-xl p-4 box-border border-2 border-transparent flex-1 min-h-0">
           {/* Background Grid Layer */}
-          <div style={{ ...gridStyle, position: 'absolute', inset: '1rem', zIndex: 0, pointerEvents: 'none' }}>
+          <div
+            className="absolute inset-4 z-0 grid gap-4 h-full"
+            style={gridStyle}>
             {backgroundCells}
           </div>
 
           {/* Foreground Content Layer */}
           <div
+            className="pointer-events-none relative z-10 grid gap-4 h-full"
             ref={containerRef}
-            style={{ ...gridStyle, position: 'relative', zIndex: 10 }}>
+            style={gridStyle}>
             {/* Placeholder */}
             {placeholder && (
               <div

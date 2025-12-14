@@ -143,7 +143,7 @@ export const DraggableGridItem: React.FC<DraggableGridItemProps> = ({
       {...listeners}
       {...attributes}
       onClick={() => !isDragging && onSelect && onSelect(item.id)}
-      className={`relative group ${isDragging ? 'ring-2 ring-indigo-500 shadow-xl' : ''} ${isSelected && !isDragging ? 'ring-2 ring-blue-500 z-50' : ''}`}>
+      className={`relative pointer-events-auto group ${isDragging ? 'ring-2 ring-indigo-500 shadow-xl' : ''} ${isSelected && !isDragging ? 'ring-2 ring-blue-500 z-50' : ''}`}>
       {children}
 
       {!readOnly && (

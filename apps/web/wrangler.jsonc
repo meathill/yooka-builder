@@ -13,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "yooka-db",
-      "database_id": "dummy-id-for-local-dev"
+      "database_id": "f9109e1a-5288-43dc-9dfc-718b7ba7db1d"
     }
   ],
   "images": {
@@ -30,6 +30,13 @@
     "enabled": true
   },
   "placement": { "mode": "smart" },
+  "r2_buckets": [
+    {
+      "binding": "YOOKA_BUCKET",
+      "bucket_name": "yooka-db",
+      "preview_bucket_name": "youka-db"
+    }
+  ],
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",

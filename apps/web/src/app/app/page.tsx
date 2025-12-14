@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { GridCanvas } from '@/components/GridCanvas';
 import { PropertyPanel } from '@/components/PropertyPanel';
 import { ProfileModal } from '@/components/ProfileModal';
+import { AddWidgetModal } from '@/components/AddWidgetModal';
 import { GridLayoutData, GridItem } from '@/types/grid';
 import { getGrid, saveGrid, publishGrid } from '../actions';
 import { authClient } from '@/lib/auth-client';
@@ -68,6 +69,10 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [username, setUsername] = useState<string | undefined>(undefined);
+
+  // Add Widget State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addPosition, setAddPosition] = useState<{ x: number; y: number } | null>(null);
 
   const { data: session, isPending: isSessionPending } = authClient.useSession();
   const router = useRouter();
@@ -145,6 +150,44 @@ export default function EditorPage() {
       setData({ ...data, items: newItems });
       setSelectedId(null);
     }
+  };
+
+  const handleAddClick = (x: number, y: number) => {
+    setAddPosition({ x, y });
+    setIsAddModalOpen(true);
+  };
+
+  const handleAddItem = (type: 'text' | 'image' | 'video' | 'social' | 'app') => {
+    if (!addPosition) return;
+
+    const newItem: GridItem = {
+      id: crypto.randomUUID(),
+      x: addPosition.x,
+      y: addPosition.y,
+      w: 1, // Default size
+      h: 1,
+      type: type,
+      content: type === 'text' ? 'New Text Widget' : '', // Placeholder
+    };
+
+    if (type === 'image') {
+      newItem.content = 'https://picsum.photos/400/400/?blur';
+    }
+
+    // Check collision/fit?
+    // Simplified: just add it. If it overlaps, the user can move it.
+    // Ideally we check boundaries.
+    // Let's constrain to grid:
+    if (newItem.x + newItem.w - 1 > data.cols) newItem.w = data.cols - newItem.x + 1;
+    if (newItem.y + newItem.h - 1 > data.rows) newItem.h = data.rows - newItem.y + 1;
+
+    setData({
+      ...data,
+      items: [...data.items, newItem],
+    });
+
+    setIsAddModalOpen(false);
+    setSelectedId(newItem.id); // Auto select new item
   };
 
   if (isSessionPending || loading) {
@@ -235,6 +278,7 @@ export default function EditorPage() {
             onUpdate={(newData) => setData(newData)}
             selectedId={selectedId}
             onSelect={setSelectedId}
+            onAdd={handleAddClick}
           />
         </main>
 
@@ -286,6 +330,12 @@ export default function EditorPage() {
         onSuccess={(newUsername) => {
           setUsername(newUsername);
         }}
+      />
+
+      <AddWidgetModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSelectType={handleAddItem}
       />
     </div>
   );
