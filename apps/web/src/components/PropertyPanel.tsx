@@ -104,109 +104,55 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({ item, onUpdate, on
         </div>
       )}
 
-            {item.type === 'image' && (
+      {item.type === 'image' && (
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            Image URL
+            <div className="flex flex-col gap-2 mt-1">
+              <input
+                type="text"
+                value={item.content}
+                onChange={(e) => onUpdate(item.id, { content: e.target.value })}
+                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                placeholder="https://..."
+              />
 
-              <div>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
 
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                    if (!file) return;
 
-                  Image URL
+                    // Simple upload handling
 
-                  <div className="flex flex-col gap-2 mt-1">
+                    const formData = new FormData();
 
-                      <input
+                    formData.append('file', file);
 
-                          type="text"
+                    try {
+                      const res = await fetch('/api/upload', {
+                        method: 'POST',
 
-                          value={item.content}
+                        body: formData,
+                      });
 
-                          onChange={(e) => onUpdate(item.id, { content: e.target.value })}
+                      const data = (await res.json()) as { url?: string };
 
-                          className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                      if (data.url) {
+                        onUpdate(item.id, { content: data.url });
+                      } else {
+                        alert('Upload failed');
+                      }
+                    } catch (err) {
+                      console.error(err);
 
-                          placeholder="https://..."
-
-                      />
-
-                      <div className="relative">
-
-                          <input
-
-                              type="file"
-
-                              accept="image/*"
-
-                              onChange={async (e) => {
-
-                                  const file = e.target.files?.[0];
-
-                                  if (!file) return;
-
-                                  
-
-                                  // Simple upload handling
-
-                                  const formData = new FormData();
-
-                                  formData.append('file', file);
-
-                                  
-
-                                                              try {
-
-                                  
-
-                                                                  const res = await fetch('/api/upload', {
-
-                                  
-
-                                                                      method: 'POST',
-
-                                  
-
-                                                                      body: formData
-
-                                  
-
-                                                                  });
-
-                                  
-
-                                                                  const data = await res.json() as { url?: string };
-
-                                  
-
-                                                                  if (data.url) {
-
-                                  
-
-                                                                      onUpdate(item.id, { content: data.url });
-
-                                  
-
-                                                                  } else {
-
-                                  
-
-                                                                      alert('Upload failed');
-
-                                  
-
-                                                                  }
-
-                                  
-
-                                                              } catch (err) {
-
-                                      console.error(err);
-
-                                      alert('Upload error');
-
-                                  }
-
-                              }}
-
-                              className="block w-full text-sm text-zinc-500
+                      alert('Upload error');
+                    }
+                  }}
+                  className="block w-full text-sm text-zinc-500
 
                               file:mr-4 file:py-2 file:px-4
 
@@ -219,130 +165,69 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({ item, onUpdate, on
                               hover:file:bg-indigo-100 dark:file:bg-indigo-900/30 dark:file:text-indigo-300
 
                               "
-
-                          />
-
-                      </div>
-
-                  </div>
-
-                </label>
-
-                {item.content && (
-
-                   <div className="rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-700 h-32 relative mt-2">
-
-                       <img src={item.content} alt="Preview" className="w-full h-full object-cover" />
-
-                   </div>
-
-                )}
-
+                />
               </div>
+            </div>
+          </label>
 
-            )}
+          {item.content && (
+            <div className="rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-700 h-32 relative mt-2">
+              <img
+                src={item.content}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
-      
+      {item.type === 'video' && (
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            Video URL (YouTube/Vimeo or Upload)
+            <div className="flex flex-col gap-2 mt-1">
+              <input
+                type="text"
+                value={item.content}
+                onChange={(e) => onUpdate(item.id, { content: e.target.value })}
+                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                placeholder="https://..."
+              />
 
-            {item.type === 'video' && (
+              <input
+                type="file"
+                accept="video/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
 
-              <div>
+                  if (!file) return;
 
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  const formData = new FormData();
 
-                  Video URL (YouTube/Vimeo or Upload)
+                  formData.append('file', file);
 
-                  <div className="flex flex-col gap-2 mt-1">
+                  try {
+                    const res = await fetch('/api/upload', {
+                      method: 'POST',
 
-                      <input
+                      body: formData,
+                    });
 
-                          type="text"
+                    const data = (await res.json()) as { url?: string };
 
-                          value={item.content}
+                    if (data.url) {
+                      onUpdate(item.id, { content: data.url });
+                    } else {
+                      alert('Upload failed');
+                    }
+                  } catch (err) {
+                    console.error(err);
 
-                          onChange={(e) => onUpdate(item.id, { content: e.target.value })}
-
-                          className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
-
-                          placeholder="https://..."
-
-                      />
-
-                      <input
-
-                          type="file"
-
-                          accept="video/*"
-
-                          onChange={async (e) => {
-
-                              const file = e.target.files?.[0];
-
-                              if (!file) return;
-
-                              
-
-                              const formData = new FormData();
-
-                              formData.append('file', file);
-
-                              
-
-                                                      try {
-
-                              
-
-                                                          const res = await fetch('/api/upload', {
-
-                              
-
-                                                              method: 'POST',
-
-                              
-
-                                                              body: formData
-
-                              
-
-                                                          });
-
-                              
-
-                                                          const data = await res.json() as { url?: string };
-
-                              
-
-                                                          if (data.url) {
-
-                              
-
-                                                              onUpdate(item.id, { content: data.url });
-
-                              
-
-                                                          } else {
-
-                              
-
-                                                              alert('Upload failed');
-
-                              
-
-                                                          }
-
-                              
-
-                                                      } catch (err) {
-
-                                  console.error(err);
-
-                                  alert('Upload error');
-
-                              }
-
-                          }}
-
-                          className="block w-full text-sm text-zinc-500
+                    alert('Upload error');
+                  }
+                }}
+                className="block w-full text-sm text-zinc-500
 
                           file:mr-4 file:py-2 file:px-4
 
@@ -355,16 +240,11 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({ item, onUpdate, on
                           hover:file:bg-indigo-100 dark:file:bg-indigo-900/30 dark:file:text-indigo-300
 
                           "
-
-                      />
-
-                  </div>
-
-                </label>
-
-              </div>
-
-            )}
+              />
+            </div>
+          </label>
+        </div>
+      )}
 
       {item.type === 'social' && (
         <div>

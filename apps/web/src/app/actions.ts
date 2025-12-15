@@ -78,7 +78,7 @@ export async function updateUsername(userId: string, username: string) {
     return { success: false, error: 'Username must be at least 5 characters long.' };
   }
 
-  const { env } = getCloudflareContext();
+  const { env } = await getCloudflareContext();
   const db = drizzle(env.DB);
 
   try {

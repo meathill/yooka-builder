@@ -1,24 +1,24 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { NextRequest, NextResponse } from "next/server";
-import { getAuth } from "@/lib/auth";
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
     const { env } = getCloudflareContext();
     const auth = getAuth(env as Cloudflare.Env);
     const session = await auth.api.getSession({
-        headers: request.headers
+      headers: request.headers,
     });
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const formData = await request.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get('file') as File;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
     const filename = `${crypto.randomUUID()}-${file.name}`;
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: publicUrl });
   } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    console.error('Upload error:', error);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

@@ -8,37 +8,37 @@ interface PageProps {
 
 // Helper to embed video
 const VideoEmbed = ({ url }: { url: string }) => {
-    // Check if it's a direct file link
-    if (url.match(/\.(mp4|webm|mov)$/i) || url.includes('r2.cloudflarestorage.com') || url.includes('i.yooka.me')) {
-        return (
-            <video 
-                src={url} 
-                className="w-full h-full absolute inset-0 object-cover" 
-                controls
-                playsInline
-            />
-        );
-    }
-
-    // Simple regex for YT/Vimeo (naive)
-    let embedUrl = url;
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-        const videoId = url.split('v=')[1] || url.split('/').pop();
-        embedUrl = `https://www.youtube.com/embed/${videoId}`;
-    } else if (url.includes('vimeo.com')) {
-        const videoId = url.split('/').pop();
-        embedUrl = `https://player.vimeo.com/video/${videoId}`;
-    }
-
+  // Check if it's a direct file link
+  if (url.match(/\.(mp4|webm|mov)$/i) || url.includes('r2.cloudflarestorage.com') || url.includes('i.yooka.me')) {
     return (
-        <iframe 
-            src={embedUrl} 
-            className="w-full h-full absolute inset-0" 
-            frameBorder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowFullScreen
-        />
+      <video
+        src={url}
+        className="w-full h-full absolute inset-0 object-cover"
+        controls
+        playsInline
+      />
     );
+  }
+
+  // Simple regex for YT/Vimeo (naive)
+  let embedUrl = url;
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    const videoId = url.split('v=')[1] || url.split('/').pop();
+    embedUrl = `https://www.youtube.com/embed/${videoId}`;
+  } else if (url.includes('vimeo.com')) {
+    const videoId = url.split('/').pop();
+    embedUrl = `https://player.vimeo.com/video/${videoId}`;
+  }
+
+  return (
+    <iframe
+      src={embedUrl}
+      className="w-full h-full absolute inset-0"
+      frameBorder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    />
+  );
 };
 const ReadOnlyGridItem = ({ item }: { item: GridItem }) => {
   const style: React.CSSProperties = {
