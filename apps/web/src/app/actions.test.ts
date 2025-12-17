@@ -31,7 +31,7 @@ vi.mock('drizzle-orm/d1', () => ({
 
 // Mock schema and eq
 vi.mock('@/db/schema', () => ({
-  user: { id: 'id', username: 'username' },
+  user: { id: 'id', username: 'username', name: 'name', image: 'image', bio: 'bio', tags: 'tags' },
 }));
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn(),
@@ -103,42 +103,48 @@ describe('Grid Server Actions', () => {
         user_id: 'user1',
         data: JSON.stringify(MOCK_DATA),
       });
-      mockDrizzleGet.mockResolvedValue({ username: 'testUser' });
+      mockDrizzleGet.mockResolvedValue({ username: 'testUser', name: 'Test User', image: null, bio: null, tags: null });
 
       const result = await getGrid('user1');
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         id: 'grid1',
         user_id: 'user1',
         data: MOCK_DATA,
         username: 'testUser',
       });
+      expect(result?.profile).toBeDefined();
       expect(mockPrepare).toHaveBeenCalledWith(expect.stringContaining('SELECT * FROM grids'));
       expect(mockBind).toHaveBeenCalledWith('user1');
     });
 
     it('should return basic object with null data if no grid found but user exists', async () => {
       mockFirst.mockResolvedValue(null);
-      mockDrizzleGet.mockResolvedValue({ username: 'testUser' });
+      mockDrizzleGet.mockResolvedValue({ username: 'testUser', name: 'Test User', image: null, bio: null, tags: null });
 
       const result = await getGrid('user1');
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         data: null,
         username: 'testUser',
       });
+      expect(result?.profile).toBeDefined();
     });
   });
 
   describe('publishGrid', () => {
     it('should put grid data into KV if username exists', async () => {
       mockPut.mockResolvedValue(undefined);
-      mockDrizzleGet.mockResolvedValue({ username: 'validUser' });
+      mockDrizzleGet.mockResolvedValue({ username: 'validUser', name: 'Valid User', image: null, bio: null, tags: null });
 
       const result = await publishGrid('user1', MOCK_DATA);
 
       expect(result.success).toBe(true);
-      expect(mockPut).toHaveBeenCalledWith('profile:validUser', JSON.stringify(MOCK_DATA));
+      // Now it saves PublicPageData with profile and grid
+      expect(mockPut).toHaveBeenCalledWith(
+        'profile:validUser',
+        expect.stringContaining('"grid"')
+      );
     });
 
     it('should fail if username is not set', async () => {

@@ -1,7 +1,7 @@
 'use server';
 
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { GridLayoutData } from '@/types/grid';
+import { GridLayoutData, UserProfile, PublicPageData } from '@/types/grid';
 
 import { drizzle } from 'drizzle-orm/d1';
 import { user } from '@/db/schema';
@@ -30,7 +30,7 @@ export async function publishGrid(userId: string, data: GridLayoutData) {
   const db = drizzle(env.DB);
 
   try {
-    // Get username
+    // Get user profile
     const userData = await db.select().from(user).where(eq(user.id, userId)).get();
     const username = userData?.username;
 
@@ -38,8 +38,20 @@ export async function publishGrid(userId: string, data: GridLayoutData) {
       return { success: false, error: 'Username not set' };
     }
 
+    // Build complete public page data
+    const publicData: PublicPageData = {
+      profile: {
+        name: userData.name,
+        username: username,
+        avatar: userData.image || undefined,
+        bio: userData.bio || undefined,
+        tags: userData.tags ? JSON.parse(userData.tags) : undefined,
+      },
+      grid: data,
+    };
+
     const key = `profile:${username}`;
-    await env.KV.put(key, JSON.stringify(data));
+    await env.KV.put(key, JSON.stringify(publicData));
 
     return { success: true, username };
   } catch (error) {
@@ -57,15 +69,30 @@ export async function getGrid(userId: string) {
 
     const result = await stmt.first();
 
-    // Also fetch user profile for username
-    const userData = await db.select({ username: user.username }).from(user).where(eq(user.id, userId)).get();
+    // Fetch complete user profile
+    const userData = await db.select({
+      username: user.username,
+      name: user.name,
+      image: user.image,
+      bio: user.bio,
+      tags: user.tags,
+    }).from(user).where(eq(user.id, userId)).get();
 
-    if (!result) return { data: null, username: userData?.username };
+    const profile: UserProfile | null = userData ? {
+      name: userData.name,
+      username: userData.username || '',
+      avatar: userData.image || undefined,
+      bio: userData.bio || undefined,
+      tags: userData.tags ? JSON.parse(userData.tags) : undefined,
+    } : null;
+
+    if (!result) return { data: null, username: userData?.username, profile };
 
     return {
       ...result,
       data: JSON.parse(result.data as string) as GridLayoutData,
       username: userData?.username,
+      profile,
     };
   } catch (error) {
     console.error('Failed to get grid:', error);
@@ -93,15 +120,35 @@ export async function updateUsername(userId: string, username: string) {
   }
 }
 
-export async function getPublicGrid(username: string) {
+export async function getPublicGrid(username: string): Promise<PublicPageData | null> {
   const { env } = await getCloudflareContext();
   try {
     const key = `profile:${username}`;
     const data = await env.KV.get(key);
     if (!data) return null;
-    return JSON.parse(data) as GridLayoutData;
+    return JSON.parse(data) as PublicPageData;
   } catch (error) {
     console.error('Failed to get public grid:', error);
     return null;
+  }
+}
+
+export async function updateUserProfile(
+  userId: string,
+  profile: Partial<Pick<UserProfile, 'bio' | 'tags'>>
+) {
+  const { env } = await getCloudflareContext();
+  const db = drizzle(env.DB);
+
+  try {
+    const updates: { bio?: string; tags?: string } = {};
+    if (profile.bio !== undefined) updates.bio = profile.bio;
+    if (profile.tags !== undefined) updates.tags = JSON.stringify(profile.tags);
+
+    await db.update(user).set(updates).where(eq(user.id, userId)).run();
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update user profile:', error);
+    return { success: false, error: 'Failed to update profile.' };
   }
 }
