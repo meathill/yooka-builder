@@ -1,9 +1,10 @@
 import { GridLayoutData, UserProfile } from '@/types/grid';
+import { GRID_CONFIG } from './grid-config';
 
 // 默认网格布局模拟数据 - 用于展示新设计效果
 export const DEFAULT_GRID_DATA: GridLayoutData = {
-  rows: 6,
-  cols: 8,
+  rows: GRID_CONFIG.DEFAULT_ROWS,
+  cols: GRID_CONFIG.DEFAULT_COLS,
   items: [
     {
       id: 'item-1',

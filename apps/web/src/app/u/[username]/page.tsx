@@ -2,6 +2,7 @@ import { getPublicGrid } from '@/app/actions';
 import { notFound } from 'next/navigation';
 import { GridCanvas } from '@/components/GridCanvas';
 import { UserProfile, GridLayoutData } from '@/types/grid';
+import { GRID_CONFIG } from '@/lib/grid-config';
 
 interface PageProps {
   params: Promise<{ username: string }>;
@@ -9,8 +10,8 @@ interface PageProps {
 
 // 默认空数据
 const DEFAULT_GRID: GridLayoutData = {
-  rows: 6,
-  cols: 8,
+  rows: GRID_CONFIG.DEFAULT_ROWS,
+  cols: GRID_CONFIG.DEFAULT_COLS,
   items: [],
 };
 
