@@ -1,78 +1,114 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GridCanvas } from '@/components/GridCanvas';
-import { PropertyPanel } from '@/components/PropertyPanel';
+import { ProfilePreview, ProfileHeaderModal } from '@/components/profile';
 import { ProfileModal } from '@/components/ProfileModal';
 import { AddWidgetModal } from '@/components/AddWidgetModal';
-import { GridLayoutData, GridItem } from '@/types/grid';
-import { getGrid, saveGrid, publishGrid } from '../actions';
+import { PropertyPanel } from '@/components/PropertyPanel';
+import { GridLayoutData, GridItem, UserProfile } from '@/types/grid';
+import { getGrid, saveGrid, publishGrid, updateUserProfile } from '../actions';
 import { authClient } from '@/lib/auth-client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+// 默认模拟数据 - 更好地展示新设计
 const DEFAULT_DATA: GridLayoutData = {
-  rows: 12,
+  rows: 6,
   cols: 8,
   items: [
     {
       id: 'item-1',
       x: 1,
       y: 1,
-      w: 4,
-      h: 4,
-      type: 'image',
-      content: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba',
+      w: 2,
+      h: 2,
+      type: 'social',
+      content: 'meathill',
+      platform: 'xiaohongshu',
+      title: '小红书',
+      subtitle: '@meathill',
     },
     {
       id: 'item-2',
-      x: 5,
+      x: 3,
       y: 1,
-      w: 4,
+      w: 2,
       h: 2,
-      type: 'text',
-      content: 'Welcome to Yooka!',
+      type: 'social',
+      content: 'meathill',
+      platform: 'bilibili',
+      title: '哔哩哔哩',
+      subtitle: '@meathill',
     },
     {
       id: 'item-3',
-      x: 5,
+      x: 1,
       y: 3,
-      w: 2,
-      h: 2,
-      type: 'app',
-      content: 'Instagram',
+      w: 4,
+      h: 3,
+      type: 'image',
+      content: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800',
+      title: 'photo',
     },
     {
       id: 'item-4',
-      x: 7,
-      y: 3,
+      x: 5,
+      y: 1,
       w: 2,
       h: 2,
-      type: 'app',
-      content: 'Twitter',
+      type: 'social',
+      content: '',
+      platform: 'default',
     },
     {
       id: 'item-5',
-      x: 1,
-      y: 5,
-      w: 8,
-      h: 4,
-      type: 'text',
-      content: 'Drag me around! This is a flexible grid system.',
+      x: 7,
+      y: 1,
+      w: 2,
+      h: 2,
+      type: 'social',
+      content: '',
+      platform: 'default',
+    },
+    {
+      id: 'item-6',
+      x: 5,
+      y: 3,
+      w: 4,
+      h: 3,
+      type: 'video',
+      content: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      platform: 'youtube',
+      title: 'youtube',
     },
   ],
 };
 
+// 默认用户资料模拟数据
+const DEFAULT_PROFILE: UserProfile = {
+  name: '肉山Meathill',
+  username: 'meathill',
+  avatar: 'https://avatars.githubusercontent.com/u/1032389?v=4',
+  bio: '我是一名游走于设计与代码之间的全栈创造者。我不只交付代码，我交付的是那种让人眼前一亮、丝般顺滑的数字体验。',
+  tags: ['全栈开发工程师', 'youtuber', 'B站Up'],
+  domain: 'yooka.me/meathill',
+};
+
 export default function EditorPage() {
   const [data, setData] = useState<GridLayoutData>(DEFAULT_DATA);
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isProfileHeaderOpen, setIsProfileHeaderOpen] = useState(false);
   const [username, setUsername] = useState<string | undefined>(undefined);
 
   // Add Widget State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addPosition, setAddPosition] = useState<{ x: number; y: number } | null>(null);
+
+  // Item Edit Modal State
+  const [editingItem, setEditingItem] = useState<GridItem | null>(null);
 
   const { data: session, isPending: isSessionPending } = authClient.useSession();
   const router = useRouter();
@@ -85,7 +121,6 @@ export default function EditorPage() {
     if (isSessionPending) return;
 
     if (!userId) {
-      // Redirect to sign-in if not logged in, since this is a protected app route
       router.push('/sign-in');
       return;
     }
@@ -100,6 +135,12 @@ export default function EditorPage() {
             setData(savedGrid.data);
           }
           if (savedGrid.username) setUsername(savedGrid.username);
+          if (savedGrid.profile) {
+            setProfile({
+              ...DEFAULT_PROFILE,
+              ...savedGrid.profile,
+            });
+          }
         }
       } catch (e) {
         console.error('Error loading data', e);
@@ -149,6 +190,7 @@ export default function EditorPage() {
       const newItems = data.items.filter((item) => item.id !== id);
       setData({ ...data, items: newItems });
       setSelectedId(null);
+      setEditingItem(null);
     }
   };
 
@@ -164,20 +206,20 @@ export default function EditorPage() {
       id: crypto.randomUUID(),
       x: addPosition.x,
       y: addPosition.y,
-      w: 1, // Default size
-      h: 1,
+      w: 2,
+      h: 2,
       type: type,
-      content: type === 'text' ? 'New Text Widget' : '', // Placeholder
+      content: type === 'text' ? 'New Text Widget' : '',
     };
 
     if (type === 'image') {
       newItem.content = 'https://picsum.photos/400/400/?blur';
     }
 
-    // Check collision/fit?
-    // Simplified: just add it. If it overlaps, the user can move it.
-    // Ideally we check boundaries.
-    // Let's constrain to grid:
+    if (type === 'social') {
+      newItem.platform = 'default';
+    }
+
     if (newItem.x + newItem.w - 1 > data.cols) newItem.w = data.cols - newItem.x + 1;
     if (newItem.y + newItem.h - 1 > data.rows) newItem.h = data.rows - newItem.y + 1;
 
@@ -187,7 +229,22 @@ export default function EditorPage() {
     });
 
     setIsAddModalOpen(false);
-    setSelectedId(newItem.id); // Auto select new item
+    setEditingItem(newItem);
+  };
+
+  const handleEditItem = (item: GridItem) => {
+    setSelectedId(item.id);
+    setEditingItem(item);
+  };
+
+  const handleSaveProfile = async (updates: Partial<UserProfile>) => {
+    if (!userId) return;
+
+    // 更新本地状态
+    setProfile((prev) => ({ ...prev, ...updates }));
+
+    // 保存到服务器
+    await updateUserProfile(userId, updates);
   };
 
   if (isSessionPending || loading) {
@@ -199,15 +256,16 @@ export default function EditorPage() {
   }
 
   if (!userId) {
-    return null; // Will redirect
+    return null;
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
-      <header className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-white dark:bg-zinc-900 z-20 relative">
+    <div className="min-h-screen flex flex-col bg-[#e3e8f0]">
+      {/* 顶部工具栏 */}
+      <header className="p-4 border-b border-zinc-200/50 flex justify-between items-center bg-white/80 backdrop-blur-sm z-20 relative shadow-sm">
         <Link
           href="/"
-          className="text-xl font-bold hover:opacity-80">
+          className="text-xl font-bold text-zinc-800 hover:opacity-80">
           Yooka Builder
         </Link>
         <div className="flex gap-2 items-center">
@@ -216,32 +274,19 @@ export default function EditorPage() {
               href={`/u/${username}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 mr-2 flex items-center gap-1">
-              <svg
-                width="16"
-                height="16"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
+              className="text-sm text-indigo-600 hover:text-indigo-800 mr-2 flex items-center gap-1">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
               View Page
             </a>
           )}
           <button
             onClick={() => setIsProfileOpen(true)}
-            className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white mr-2 flex items-center gap-1">
+            className="text-sm text-zinc-600 hover:text-zinc-900 mr-2 flex items-center gap-1">
             <div className="w-6 h-6 bg-zinc-200 rounded-full flex items-center justify-center text-xs overflow-hidden">
               {session?.user?.image ? (
-                <img
-                  src={session.user.image}
-                  alt="avatar"
-                />
+                <img src={session.user.image} alt="avatar" />
               ) : (
                 session?.user?.name?.charAt(0)
               )}
@@ -259,70 +304,52 @@ export default function EditorPage() {
           </button>
           <button
             onClick={handlePublish}
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium shadow-sm"
             disabled={loading}>
             Publish
           </button>
           <button
             onClick={handleSave}
-            className="bg-zinc-900 text-white px-4 py-2 rounded-md hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 disabled:opacity-50 transition-colors"
+            className="bg-zinc-800 text-white px-4 py-2 rounded-lg hover:bg-zinc-700 disabled:opacity-50 transition-colors font-medium shadow-sm"
             disabled={loading}>
             Save Draft
           </button>
         </div>
       </header>
-      <div className="flex flex-1 overflow-hidden relative">
-        <main className="flex-1 relative overflow-hidden flex flex-col">
-          <GridCanvas
-            data={data}
-            onUpdate={(newData) => setData(newData)}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            onAdd={handleAddClick}
-          />
-        </main>
 
-        {/* Desktop Sidebar */}
-        <aside className="hidden md:flex w-80 border-l border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 z-10 flex-col">
+      {/* 主内容区 - 使用新的 ProfilePreview 组件 */}
+      <main className="flex-1 overflow-auto">
+        <ProfilePreview
+          profile={profile}
+          gridData={data}
+          editable={true}
+          onEditHeader={() => setIsProfileHeaderOpen(true)}
+          onEditItem={handleEditItem}
+        />
+      </main>
+
+      {/* 右侧属性面板 - 编辑选中的卡片 */}
+      {editingItem && (
+        <div className="fixed right-4 top-20 w-80 bg-white rounded-2xl shadow-2xl z-30 overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b border-zinc-100">
+            <h3 className="font-bold text-zinc-800">编辑卡片</h3>
+            <button
+              onClick={() => setEditingItem(null)}
+              className="text-zinc-400 hover:text-zinc-600">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
           <PropertyPanel
-            item={selectedItem}
+            item={editingItem}
             onUpdate={handleUpdateItem}
             onDelete={handleDeleteItem}
           />
-        </aside>
+        </div>
+      )}
 
-        {/* Mobile Bottom Sheet */}
-        {selectedItem && (
-          <div className="md:hidden fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-xl max-h-[50vh] overflow-y-auto flex flex-col animate-in slide-in-from-bottom duration-200">
-            <div className="sticky top-0 bg-inherit z-10 flex justify-between items-center p-4 border-b border-zinc-100 dark:border-zinc-700">
-              <h3 className="font-bold">Edit Item</h3>
-              <button
-                onClick={() => setSelectedId(null)}
-                className="text-zinc-500">
-                <svg
-                  width="20"
-                  height="20"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <PropertyPanel
-              item={selectedItem}
-              onUpdate={handleUpdateItem}
-              onDelete={handleDeleteItem}
-            />
-          </div>
-        )}
-      </div>
-
+      {/* Profile Username Modal */}
       <ProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
@@ -332,6 +359,15 @@ export default function EditorPage() {
         }}
       />
 
+      {/* Profile Header Edit Modal */}
+      <ProfileHeaderModal
+        isOpen={isProfileHeaderOpen}
+        onClose={() => setIsProfileHeaderOpen(false)}
+        profile={profile}
+        onSave={handleSaveProfile}
+      />
+
+      {/* Add Widget Modal */}
       <AddWidgetModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
