@@ -80,6 +80,7 @@ cd apps/web
 # 应用数据库迁移
 npx wrangler d1 execute yooka-db --local --file=migrations/0000_init_full.sql
 npx wrangler d1 execute yooka-db --local --file=migrations/0001_parched_victor_mancha.sql
+npx wrangler d1 execute yooka-db --local --file=migrations/0003_add_user_profile.sql
 ```
 
 ### 4. 启动开发服务器
