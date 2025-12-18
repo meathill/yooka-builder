@@ -7,8 +7,8 @@ export interface GridItem {
   type: 'text' | 'image' | 'app' | 'video' | 'social' | 'profile';
   content: string; // URL for image/video, text content, etc.
   platform?: 'xiaohongshu' | 'bilibili' | 'youtube' | 'twitter' | 'github' | 'wechat' | 'default';
-  title?: string;      // 卡片标题
-  subtitle?: string;   // 卡片副标题
+  title?: string; // 卡片标题
+  subtitle?: string; // 卡片副标题
 }
 
 export interface GridLayoutData {
@@ -23,7 +23,7 @@ export interface UserProfile {
   avatar?: string;
   bio?: string;
   tags?: string[];
-  domain?: string;  // 自定义域名显示
+  domain?: string; // 自定义域名显示
 }
 
 export interface PublicPageData {

@@ -1,6 +1,6 @@
 import { getPublicGrid } from '@/app/actions';
 import { notFound } from 'next/navigation';
-import { ProfilePreview } from '@/components/profile';
+import { GridCanvas } from '@/components/GridCanvas';
 import { UserProfile, GridLayoutData } from '@/types/grid';
 
 interface PageProps {
@@ -32,21 +32,19 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   return (
     <>
-      <ProfilePreview
+      <GridCanvas
+        data={gridData}
         profile={profile}
-        gridData={gridData}
-        editable={false}
+        readOnly={true}
       />
       <footer className="bg-[#e3e8f0] py-6 text-center text-sm text-zinc-500">
         Powered by{' '}
         <a
           href="/"
-          className="underline hover:text-zinc-700 transition-colors"
-        >
+          className="underline hover:text-zinc-700 transition-colors">
           Yooka Builder
         </a>
       </footer>
     </>
   );
 }
-

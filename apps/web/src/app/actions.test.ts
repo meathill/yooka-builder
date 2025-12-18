@@ -135,16 +135,19 @@ describe('Grid Server Actions', () => {
   describe('publishGrid', () => {
     it('should put grid data into KV if username exists', async () => {
       mockPut.mockResolvedValue(undefined);
-      mockDrizzleGet.mockResolvedValue({ username: 'validUser', name: 'Valid User', image: null, bio: null, tags: null });
+      mockDrizzleGet.mockResolvedValue({
+        username: 'validUser',
+        name: 'Valid User',
+        image: null,
+        bio: null,
+        tags: null,
+      });
 
       const result = await publishGrid('user1', MOCK_DATA);
 
       expect(result.success).toBe(true);
       // Now it saves PublicPageData with profile and grid
-      expect(mockPut).toHaveBeenCalledWith(
-        'profile:validUser',
-        expect.stringContaining('"grid"')
-      );
+      expect(mockPut).toHaveBeenCalledWith('profile:validUser', expect.stringContaining('"grid"'));
     });
 
     it('should fail if username is not set', async () => {

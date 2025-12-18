@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { GridLayoutData, GridItem } from '@/types/grid';
+import { GridLayoutData, GridItem, UserProfile } from '@/types/grid';
 import {
   DndContext,
   DragEndEvent,
@@ -14,6 +14,7 @@ import {
 import { DraggableGridItem } from './DraggableGridItem';
 import { GridItemContent } from './grid-canvas/GridItemContent';
 import { GridBackgroundLayer } from './grid-canvas/GridBackgroundLayer';
+import { ProfileHeader } from './profile/ProfileHeader';
 
 interface GridCanvasProps {
   data: GridLayoutData;
@@ -22,6 +23,8 @@ interface GridCanvasProps {
   onSelect?: (id: string) => void;
   onAdd?: (x: number, y: number) => void;
   readOnly?: boolean;
+  profile?: UserProfile;
+  onEditHeader?: () => void;
 }
 
 export const GridCanvas: React.FC<GridCanvasProps> = ({
@@ -31,6 +34,8 @@ export const GridCanvas: React.FC<GridCanvasProps> = ({
   onSelect,
   onAdd,
   readOnly = false,
+  profile,
+  onEditHeader,
 }) => {
   const [data, setData] = useState(initialData);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -245,12 +250,23 @@ export const GridCanvas: React.FC<GridCanvasProps> = ({
 
   const gridStyle: React.CSSProperties = {
     gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-    gridTemplateRows: `repeat(${rows}, ${rowHeight}px)`,
+    gridTemplateRows: `repeat(${rows}, 1fr)`,
     minHeight: rows * (rowHeight || 10) + (rows - 1) * 16, // Fallback calc
   };
 
   return (
-    <div className="w-full h-full p-4 bg-zinc-50 dark:bg-zinc-900 overflow-auto flex flex-col">
+    <div className="w-full h-full p-4 bg-[#e3e8f0] overflow-auto flex flex-col">
+      {/* Profile Header */}
+      {profile && (
+        <div className="max-w-4xl mx-auto w-full mb-4">
+          <ProfileHeader
+            profile={profile}
+            editable={!readOnly}
+            onEdit={onEditHeader}
+          />
+        </div>
+      )}
+
       <DndContext
         sensors={sensors}
         onDragStart={readOnly ? undefined : handleDragStart}
@@ -268,7 +284,7 @@ export const GridCanvas: React.FC<GridCanvasProps> = ({
 
           <div
             ref={containerRef}
-            className="grid gap-4 relative z-10 pointer-events-none"
+            className="grid gap-4 relative z-10 pointer-events-none aspect-square"
             style={gridStyle}>
             {/* Placeholder */}
             {placeholder && (

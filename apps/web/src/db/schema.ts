@@ -7,8 +7,8 @@ export const user = sqliteTable('user', {
   emailVerified: integer('email_verified', { mode: 'boolean' }).notNull(),
   image: text('image'),
   username: text('username').unique(),
-  bio: text('bio'),           // 个人简介
-  tags: text('tags'),         // 标签数组，JSON 格式存储
+  bio: text('bio'), // 个人简介
+  tags: text('tags'), // 标签数组，JSON 格式存储
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });

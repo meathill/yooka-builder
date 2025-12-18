@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ProfilePreview, ProfileHeaderModal } from '@/components/profile';
+import { ProfileHeaderModal } from '@/components/profile';
+import { GridCanvas } from '@/components/GridCanvas';
 import { ProfileModal } from '@/components/ProfileModal';
 import { AddWidgetModal } from '@/components/AddWidgetModal';
 import { PropertyPanel } from '@/components/PropertyPanel';
+import { ToastAlert, AlertDialog } from '@/components/ui/AlertDialog';
 import { GridLayoutData, GridItem, UserProfile } from '@/types/grid';
 import { getGrid, saveGrid, publishGrid, updateUserProfile } from '../actions';
 import { authClient } from '@/lib/auth-client';
@@ -110,6 +112,13 @@ export default function EditorPage() {
   // Item Edit Modal State
   const [editingItem, setEditingItem] = useState<GridItem | null>(null);
 
+  // Alert Dialog State
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+  const [isPublished, setIsPublished] = useState(false);
+
   const { data: session, isPending: isSessionPending } = authClient.useSession();
   const router = useRouter();
 
@@ -151,13 +160,18 @@ export default function EditorPage() {
     loadData();
   }, [userId, isSessionPending, router]);
 
+  const showAlert = (message: string) => {
+    setAlertMessage(message);
+    setAlertOpen(true);
+  };
+
   const handleSave = async () => {
     if (!userId) return;
     const result = await saveGrid(userId, data);
     if (result.success) {
-      alert('Saved successfully!');
+      showAlert('保存成功！');
     } else {
-      alert('Failed to save.');
+      showAlert('保存失败，请重试。');
     }
   };
 
@@ -166,17 +180,18 @@ export default function EditorPage() {
 
     if (!username) {
       setIsProfileOpen(true);
-      alert('Please set a username before publishing.');
+      showAlert('请先设置用户名再发布。');
       return;
     }
 
     const result = await publishGrid(userId, data);
     if (result.success) {
+      setIsPublished(true);
       const url = `${window.location.origin}/u/${username}`;
       window.open(url, '_blank');
-      alert(`Published successfully!`);
+      showAlert('发布成功！');
     } else {
-      alert('Failed to publish: ' + result.error);
+      showAlert('发布失败：' + result.error);
     }
   };
 
@@ -186,12 +201,19 @@ export default function EditorPage() {
   };
 
   const handleDeleteItem = (id: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      const newItems = data.items.filter((item) => item.id !== id);
+    setDeleteItemId(id);
+    setConfirmOpen(true);
+  };
+
+  const confirmDeleteItem = () => {
+    if (deleteItemId) {
+      const newItems = data.items.filter((item) => item.id !== deleteItemId);
       setData({ ...data, items: newItems });
       setSelectedId(null);
       setEditingItem(null);
+      setDeleteItemId(null);
     }
+    setConfirmOpen(false);
   };
 
   const handleAddClick = (x: number, y: number) => {
@@ -275,8 +297,18 @@ export default function EditorPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-indigo-600 hover:text-indigo-800 mr-2 flex items-center gap-1">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <svg
+                width="16"
+                height="16"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
               </svg>
               View Page
             </a>
@@ -286,7 +318,10 @@ export default function EditorPage() {
             className="text-sm text-zinc-600 hover:text-zinc-900 mr-2 flex items-center gap-1">
             <div className="w-6 h-6 bg-zinc-200 rounded-full flex items-center justify-center text-xs overflow-hidden">
               {session?.user?.image ? (
-                <img src={session.user.image} alt="avatar" />
+                <img
+                  src={session.user.image}
+                  alt="avatar"
+                />
               ) : (
                 session?.user?.name?.charAt(0)
               )}
@@ -306,7 +341,7 @@ export default function EditorPage() {
             onClick={handlePublish}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium shadow-sm"
             disabled={loading}>
-            Publish
+            {isPublished ? 'Save' : 'Publish'}
           </button>
           <button
             onClick={handleSave}
@@ -317,14 +352,20 @@ export default function EditorPage() {
         </div>
       </header>
 
-      {/* 主内容区 - 使用新的 ProfilePreview 组件 */}
+      {/* 主内容区 - 使用 GridCanvas 组件，恢复拖拽和新增功能 */}
       <main className="flex-1 overflow-auto">
-        <ProfilePreview
+        <GridCanvas
+          data={data}
+          onUpdate={setData}
+          selectedId={selectedId}
+          onSelect={(id) => {
+            setSelectedId(id);
+            const item = data.items.find((i) => i.id === id);
+            if (item) setEditingItem(item);
+          }}
+          onAdd={handleAddClick}
           profile={profile}
-          gridData={data}
-          editable={true}
           onEditHeader={() => setIsProfileHeaderOpen(true)}
-          onEditItem={handleEditItem}
         />
       </main>
 
@@ -336,8 +377,18 @@ export default function EditorPage() {
             <button
               onClick={() => setEditingItem(null)}
               className="text-zinc-400 hover:text-zinc-600">
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -372,6 +423,25 @@ export default function EditorPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSelectType={handleAddItem}
+      />
+
+      {/* Toast Alert */}
+      <ToastAlert
+        open={alertOpen}
+        onOpenChange={setAlertOpen}
+        title={alertMessage}
+      />
+
+      {/* Confirm Delete Dialog */}
+      <AlertDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="确认删除"
+        description="确定要删除这个卡片吗？此操作无法撤销。"
+        confirmText="删除"
+        cancelText="取消"
+        onConfirm={confirmDeleteItem}
+        variant="destructive"
       />
     </div>
   );

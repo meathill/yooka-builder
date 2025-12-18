@@ -70,21 +70,27 @@ export async function getGrid(userId: string) {
     const result = await stmt.first();
 
     // Fetch complete user profile
-    const userData = await db.select({
-      username: user.username,
-      name: user.name,
-      image: user.image,
-      bio: user.bio,
-      tags: user.tags,
-    }).from(user).where(eq(user.id, userId)).get();
+    const userData = await db
+      .select({
+        username: user.username,
+        name: user.name,
+        image: user.image,
+        bio: user.bio,
+        tags: user.tags,
+      })
+      .from(user)
+      .where(eq(user.id, userId))
+      .get();
 
-    const profile: UserProfile | null = userData ? {
-      name: userData.name,
-      username: userData.username || '',
-      avatar: userData.image || undefined,
-      bio: userData.bio || undefined,
-      tags: userData.tags ? JSON.parse(userData.tags) : undefined,
-    } : null;
+    const profile: UserProfile | null = userData
+      ? {
+          name: userData.name,
+          username: userData.username || '',
+          avatar: userData.image || undefined,
+          bio: userData.bio || undefined,
+          tags: userData.tags ? JSON.parse(userData.tags) : undefined,
+        }
+      : null;
 
     if (!result) return { data: null, username: userData?.username, profile };
 
@@ -133,10 +139,7 @@ export async function getPublicGrid(username: string): Promise<PublicPageData | 
   }
 }
 
-export async function updateUserProfile(
-  userId: string,
-  profile: Partial<Pick<UserProfile, 'bio' | 'tags'>>
-) {
+export async function updateUserProfile(userId: string, profile: Partial<Pick<UserProfile, 'bio' | 'tags'>>) {
   const { env } = await getCloudflareContext();
   const db = drizzle(env.DB);
 
